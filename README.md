@@ -10,3 +10,4 @@ Gestire le prenotazioni per una serie di eventi.per ogni evento ci saranno un nu
 * Documentazione del codice.
 * varie ed eventuali
 
+FORUM: https://discord.gg/qFM7Kvc
