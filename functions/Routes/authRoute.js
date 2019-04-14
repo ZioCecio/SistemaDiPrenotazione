@@ -41,20 +41,13 @@ router.post("/signin", (req, res) => {
 
 router.get("/users/:id", (req, res) => {
   //console.log(req.get("token"));
-  admin
-    .auth()
-    .verifyIdToken(req.get("token"))
-    .then(decodedToken => {
-      console.log(decodedToken.uid);
-      db.collection("users")
-        .doc(req.params.id)
-        .get()
-        .then(user => {
-          console.log(user.data());
-          res.json(user.data());
-        });
-    })
-    .catch(error => res.send(error.message));
+  db.collection("users")
+    .doc(req.params.id)
+    .get()
+    .then(user => {
+      console.log(user.data());
+      res.json(user.data());
+    });
 });
 
 module.exports = router;
