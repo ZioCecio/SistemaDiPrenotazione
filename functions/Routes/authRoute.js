@@ -3,51 +3,78 @@ const firebase = require("./../firebase_modules/engine").firebase;
 const admin = require("./../firebase_modules/engine").admin;
 const db = require("./../firebase_modules/engine").firestore;
 
+const { check, validationResult } = require("express-validator/check");
+
 const router = express.Router();
 
-router.post("/signup", (req, res) => {
-  admin
-    .auth()
-    .createUser({
-      email: req.body.email,
-      password: req.body.password
-    })
-    .then(user => {
-      const data = {
-        name: req.body.name,
-        surname: req.body.surname
-      };
+router.post(
+  "/signup",
+  [
+    check("email", "Incorrect email")
+      .exists()
+      .isEmail(),
+    check("password", "Incorrect password")
+      .exists()
+      .isLength({ min: 6 }),
+    check("name", "You must provide a name.")
+      .exists()
+      .not()
+      .isEmpty()
+  ],
+  (req, res) => {
+    const errors = validationResult(req);
+    if (!errors.isEmpty())
+      return res.status(400).json(errors.array({ onlyFirstError: true }));
 
-      db.collection("users")
-        .doc(user.uid)
-        .set(data);
-    })
-    .catch(err => console.log(err.message));
+    admin
+      .auth()
+      .createUser({
+        email: req.body.email,
+        password: req.body.password
+      })
+      .then(user => {
+        const data = {
+          name: req.body.name,
+          surname: req.body.surname,
+          id: user.uid,
+          email: req.body.email,
+          subscribedEvents: [],
+          createdEvents: []
+        };
 
-  res.send("AAA");
-});
+        db.collection("users")
+          .doc(user.uid)
+          .set(data)
+          .then(() => res.status(200).json(data))
+          .catch(err => res.status(422).json({ msg: err.message }));
+      })
+      .catch(err => res.status(422).json({ msg: err.message }));
+  }
+);
 
-router.post("/signin", (req, res) => {
-  firebase
-    .auth()
-    .signInWithEmailAndPassword(req.body.email, req.body.password)
-    .then(user => {
-      user.user.getIdToken(true).then(id => {
-        res.send(id);
-      });
-    })
-    .catch(error => res.send(error));
-});
+router.post(
+  "/signin",
+  [
+    check("email", "Email must be a valid string.")
+      .exists()
+      .isEmail(),
+    check("password", "You must provide a password").exists()
+  ],
+  (req, res) => {
+    const errors = validationResult(req);
+    if (!errors.isEmpty())
+      return res.status(400).json(errors.array({ onlyFirstError: true }));
 
-router.get("/users/:id", (req, res) => {
-  //console.log(req.get("token"));
-  db.collection("users")
-    .doc(req.params.id)
-    .get()
-    .then(user => {
-      console.log(user.data());
-      res.json(user.data());
-    });
-});
+    firebase
+      .auth()
+      .signInWithEmailAndPassword(req.body.email, req.body.password)
+      .then(user => {
+        user.user.getIdToken(true).then(id => {
+          res.send(id);
+        });
+      })
+      .catch(err => res.status(400).json({ msg: err.message }));
+  }
+);
 
 module.exports = router;
