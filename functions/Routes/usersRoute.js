@@ -40,4 +40,22 @@ router.get("/:id", (req, res) => {
     .catch(err => res.status(422).json({ msg: err.message }));
 });
 
+router.put("/:id", (req, res) => {
+  if (req.uid !== req.params.id)
+    return res.status(401).json({ msg: "Unauthorized" });
+
+  let newUser = {};
+  if (req.body.name !== undefined) newUser.name = req.body.name;
+  if (req.body.surname !== undefined) newUser.surname = req.body.surname;
+
+  if (Object.keys(newUser).length === 0)
+    return res.status(400).json({ msg: "At least one field must be updated" });
+
+  db.collection("users")
+    .doc(req.params.id)
+    .update(newUser)
+    .then(() => res.status(200).json(newUser))
+    .catch(err => res.status(422).json({ msg: err.message }));
+});
+
 module.exports = router;
