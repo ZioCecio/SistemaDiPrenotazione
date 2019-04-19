@@ -6,6 +6,7 @@ const bodyParser = require("body-parser");
 
 const authRoute = require("./Routes/authRoute");
 const usersRoute = require("./Routes/usersRoute");
+const eventsRoute = require("./Routes/eventsRoute");
 
 const app = express();
 
@@ -15,11 +16,14 @@ app.use(morgan("dev"));
 
 app.use("/", authRoute);
 app.use("/users", usersRoute);
+app.use("/events", eventsRoute);
 
-/*
+app.all("*", (req, res) => {
+  res.status(501).json({ msg: "Method not implemented." });
+});
+
 app.listen(process.env.PORT, () =>
   console.log(`In ascolto sulla porta ${process.env.PORT}`)
 );
-*/
 
-exports.app = functions.https.onRequest(app);
+//exports.app = functions.https.onRequest(app);

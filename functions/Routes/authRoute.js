@@ -10,10 +10,10 @@ const router = express.Router();
 router.post(
   "/signup",
   [
-    check("email", "Incorrect email")
+    check("email", "Incorrect email.")
       .exists()
       .isEmail(),
-    check("password", "Incorrect password")
+    check("password", "Incorrect password.")
       .exists()
       .isLength({ min: 6 }),
     check("name", "You must provide a name.")
@@ -58,7 +58,7 @@ router.post(
     check("email", "Email must be a valid string.")
       .exists()
       .isEmail(),
-    check("password", "You must provide a password").exists()
+    check("password", "You must provide a password.").exists()
   ],
   (req, res) => {
     const errors = validationResult(req);
@@ -70,7 +70,7 @@ router.post(
       .signInWithEmailAndPassword(req.body.email, req.body.password)
       .then(user => {
         user.user.getIdToken(true).then(id => {
-          res.send(id);
+          res.json({ token: id });
         });
       })
       .catch(err => res.status(400).json({ msg: err.message }));
