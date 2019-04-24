@@ -63,10 +63,29 @@ router.get("/:id", (req, res) => {
         return res.status(404).json({ msg: "Event not found." });
 
       const ret = event.data();
+
+      if (ret.owner !== req.uid) delete ret.subcribedUsers;
+
       ret.id = event.id;
       return res.status(200).json(ret);
     })
     .catch(err => res.status(422).json({ msg: err.message }));
+});
+
+router.get("/:id/users", (req, res) => {
+  db.collection("events")
+    .doc(req.params.id)
+    .get()
+    .then(event => {
+      if (!event.exists) throw { message: "Event not found.", status: 404 };
+      if (event.data().owner !== req.uid)
+        throw { message: "Unauthorized.", status: 401 };
+
+      res.status(200).json(event.data().subcribedUsers);
+    })
+    .catch(err =>
+      res.status(err.status ? err.status : 422).json({ msg: err.message })
+    );
 });
 
 router.post(
@@ -132,6 +151,36 @@ router.post(
   }
 );
 
+router.post("/:id/users", (req, res) => {
+  db.collection("events")
+    .doc(req.params.id)
+    .get()
+    .then(result => {
+      if (!result.exists) throw { message: "Event not found.", status: 404 };
+      if (result.data().subcribedUsers.includes(req.uid))
+        throw { message: "User already subscribed.", status: 422 };
+    })
+    .then(() => {
+      db.collection("events")
+        .doc(req.params.id)
+        .update({
+          subcribedUsers: admin.firestore.FieldValue.arrayUnion(req.uid)
+        });
+
+      db.collection("users")
+        .doc(req.uid)
+        .update({
+          subscribedEvents: admin.firestore.FieldValue.arrayUnion(req.params.id)
+        });
+    })
+    .then(() =>
+      res.status(200).json({ idEvent: req.params.id, idUser: req.uid })
+    )
+    .catch(err =>
+      res.status(err.status ? err.status : 422).json({ msg: err.message })
+    );
+});
+
 router.put(
   "/:id",
   [
@@ -167,10 +216,9 @@ router.put(
       .doc(req.params.id)
       .get()
       .then(result => {
-        if (!result.exists)
-          return res.status(404).json({ msg: "Event not found." });
+        if (!result.exists) throw { message: "Event not found.", status: 404 };
         if (result.data().owner !== req.uid)
-          return res.status(401).json({ msg: "Unauthorized." });
+          throw { message: "Unauthorized.", status: 401 };
       })
       .then(() => {
         let newEvent = {};
@@ -194,8 +242,90 @@ router.put(
           .update(newEvent)
           .then(() => res.status(200).json(newEvent));
       })
-      .catch(err => res.status(422).json({ msg: err.message }));
+      .catch(err =>
+        res.status(err.status ? err.status : 422).json({ msg: err.message })
+      );
   }
 );
+
+router.delete("/:id", (req, res) => {
+  db.collection("events")
+    .doc(req.params.id)
+    .get()
+    .then(result => {
+      if (!result.exists) throw { message: "Event not found.", status: 404 };
+      if (result.data().owner !== req.uid)
+        throw { message: "Unauthorized.", status: 401 };
+    })
+    .then(() => {
+      db.collection("events")
+        .doc(req.params.id)
+        .delete();
+
+      db.collection("users")
+        .doc(req.uid)
+        .update({
+          createdEvents: admin.firestore.FieldValue.arrayRemove(req.params.id)
+        });
+
+      db.collection("users")
+        .where("subscribedEvents", "array-contains", req.params.id)
+        .get()
+        .then(results => {
+          results.forEach(event => {
+            event.ref.update({
+              subscribedEvents: admin.firestore.FieldValue.arrayRemove(
+                req.params.id
+              )
+            });
+          });
+        });
+    })
+    .then(() => res.status(200).json({ id: req.params.id }))
+    .catch(err =>
+      res.status(err.status ? err.status : 422).json({ msg: err.message })
+    );
+});
+
+router.delete("/:eventId/users/:userId", (req, res) => {
+  db.collection("events")
+    .doc(req.params.eventId)
+    .get()
+    .then(result => {
+      if (!result.exists) throw { message: "Event not found.", status: 404 };
+      if (result.data().owner !== req.uid && req.uid !== req.params.userId)
+        throw { message: "Unauthorized.", status: 401 };
+      if (!result.data().subcribedUsers.includes(req.params.userId))
+        throw {
+          message: "The user isn't subscribet at this event.",
+          status: 422
+        };
+    })
+    .then(() => {
+      db.collection("events")
+        .doc(req.params.eventId)
+        .update({
+          subcribedUsers: admin.firestore.FieldValue.arrayRemove(
+            req.params.userId
+          )
+        });
+
+      db.collection("users")
+        .doc(req.params.userId)
+        .update({
+          subscribedEvents: admin.firestore.FieldValue.arrayRemove(
+            req.params.eventId
+          )
+        });
+    })
+    .then(() =>
+      res
+        .status(200)
+        .json({ userId: req.params.userId, eventId: req.params.eventId })
+    )
+    .catch(err =>
+      res.status(err.status ? err.status : 422).json({ msg: err.message })
+    );
+});
 
 module.exports = router;

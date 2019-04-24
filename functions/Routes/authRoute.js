@@ -19,6 +19,10 @@ router.post(
     check("name", "You must provide a name.")
       .exists()
       .not()
+      .isEmpty(),
+    check("surname", "You must provide a surname.")
+      .exists()
+      .not()
       .isEmpty()
   ],
   (req, res) => {
@@ -70,10 +74,10 @@ router.post(
       .signInWithEmailAndPassword(req.body.email, req.body.password)
       .then(user => {
         user.user.getIdToken(true).then(id => {
-          res.json({ token: id });
+          res.status(200).json({ token: id, id: user.user.uid });
         });
       })
-      .catch(err => res.status(400).json({ msg: err.message }));
+      .catch(err => res.status(422).json({ msg: err.message }));
   }
 );
 
