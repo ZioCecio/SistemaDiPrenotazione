@@ -20,7 +20,8 @@
             "type": "string"
           },
           "email": {
-            "type": "string"
+            "type": "string",
+            "format": "email"
           },
           "createdEvents": {
             "type": "array",
@@ -65,6 +66,44 @@
         "type": "array",
         "items": {
           "$ref": "#/components/schemas/User"
+        }
+      },
+      "Event": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "owner": {
+            "type": "string"
+          },
+          "eventName": {
+            "type": "string"
+          },
+          "description": {
+            "type": "string"
+          },
+          "date": {
+            "type": "string",
+            "format": "date"
+          },
+          "place": {
+            "type": "string",
+            "format": "latlong"
+          },
+          "type": {
+            "type": "string"
+          },
+          "maxPartecipants": {
+            "type": "number",
+            "format": "int64"
+          },
+          "subscribedUsers": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          }
         }
       }
     }
@@ -453,6 +492,593 @@
           },
           "401": {
             "description": "Unauthorized.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Unprocessable entity.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/events": {
+      "get": {
+        "tags": ["Event"],
+        "summary": "Gets a list of events.",
+        "description": "Gets a list of all events' information saved into database.",
+        "responses": {
+          "200": {
+            "description": "Succesful operation.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/Event"
+                  }
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Unprocessable entity.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "tags": ["Event"],
+        "parameters": [
+          {
+            "name": "name",
+            "in": "body",
+            "description": "Name of the event.",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "description",
+            "in": "body",
+            "description": "Description of the event.",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "date",
+            "in": "body",
+            "description": "Date of the event.",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "date"
+            }
+          },
+          {
+            "name": "place",
+            "in": "body",
+            "description": "Place of the event.",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "latlong"
+            }
+          },
+          {
+            "name": "type",
+            "in": "body",
+            "description": "Type of the event.",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "maxPartecipants",
+            "in": "body",
+            "description": "Max number of partecipants of the event.",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "format": "int64",
+              "example": 10
+            }
+          }
+        ],
+        "summary": "Create a new event.",
+        "description": "Subscribe a new event in the system saving the given informations.",
+        "responses": {
+          "200": {
+            "description": "Succesful operation.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Event"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Incorrect parameters.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ExtendedError"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Unprocessable entity.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/events?type=type": {
+      "get": {
+        "parameters": [
+          {
+            "in": "query",
+            "name": "type",
+            "schema": {
+              "type": "string"
+            },
+            "description": "The type of the event."
+          }
+        ],
+        "tags": ["Event"],
+        "summary": "Gets a events with the specified type.",
+        "description": "Gets a events with the specified type deleting the users to which it is registered.",
+        "responses": {
+          "200": {
+            "description": "Succesful operation.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/Event"
+                  }
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Event not found.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Unprocessable entity.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/events/{id}": {
+      "get": {
+        "parameters": [
+          {
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "type": "string"
+            },
+            "description": "The event id."
+          }
+        ],
+        "tags": ["Event"],
+        "summary": "Gets a event with the specified id.",
+        "description": "Gets a event with the specified id deleting the users to which it is registered.",
+        "responses": {
+          "200": {
+            "description": "Succesful operation.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Event"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Event not found.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Unprocessable entity.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        }
+      },
+      "put": {
+        "parameters": [
+          {
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "type": "string"
+            },
+            "description": "The event id."
+          },
+          {
+            "in": "body",
+            "name": "name",
+            "schema": {
+              "type": "string"
+            },
+            "description": "The name of the event."
+          },
+          {
+            "in": "body",
+            "name": "description",
+            "schema": {
+              "type": "string"
+            },
+            "description": "The description of the event."
+          },
+          {
+            "in": "body",
+            "name": "date",
+            "schema": {
+              "type": "string",
+              "format": "date"
+            },
+            "description": "The date of the event."
+          },
+          {
+            "in": "body",
+            "name": "place",
+            "schema": {
+              "type": "string",
+              "format": "latlong"
+            },
+            "description": "The place of the event."
+          },
+          {
+            "in": "body",
+            "name": "type",
+            "schema": {
+              "type": "string"
+            },
+            "description": "The date of the event."
+          },
+          {
+            "in": "body",
+            "name": "maxPartecipants",
+            "schema": {
+              "type": "integer",
+              "format": "int64",
+              "example": 3
+            },
+            "description": "The max number of the partecipants of the event."
+          }
+        ],
+        "tags": ["Event"],
+        "summary": "Update the information about the event.",
+        "description": "Update the information about the specified event. At least one parameter must be updated.",
+        "responses": {
+          "200": {
+            "description": "Succesful operation.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Event"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad request.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Unprocessable entity.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        }
+      },
+      "delete": {
+        "parameters": [
+          {
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "type": "string"
+            },
+            "description": "The event id."
+          }
+        ],
+        "tags": ["Event"],
+        "summary": "Delete a event.",
+        "description": "Delete the information about the specified event.",
+        "responses": {
+          "200": {
+            "description": "Succesful operation.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "id": {
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Unprocessable entity.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/events/{id}/users": {
+      "get": {
+        "tags": ["Event"],
+        "summary": "Gets a list of users that are subscribed at the specified event.",
+        "description": "Gets a list of users that are subscribed at the specified event.",
+        "responses": {
+          "200": {
+            "description": "Succesful operation.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/User"
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Unprocessable entity.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "parameters": [
+          {
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "type": "string"
+            },
+            "description": "The event id."
+          },
+          {
+            "in": "header",
+            "name": "userId",
+            "required": true,
+            "schema": {
+              "type": "string"
+            },
+            "description": "The user id specified in the token(in the header)."
+          }
+        ],
+        "tags": ["Event"],
+        "summary": "Subscribe a user in a event.",
+        "description": "Subscribe the user who send the request to the specified event.",
+        "responses": {
+          "200": {
+            "description": "Succesful operation.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "idEvent": {
+                      "type": "string"
+                    },
+                    "idUser": {
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Event not found.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Unprocessable entity.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/events/{eventId}/users/{userId}": {
+      "delete": {
+        "parameters": [
+          {
+            "in": "path",
+            "name": "eventId",
+            "required": true,
+            "schema": {
+              "type": "string"
+            },
+            "description": "The event id."
+          },
+          {
+            "in": "path",
+            "name": "userId",
+            "required": true,
+            "schema": {
+              "type": "string"
+            },
+            "description": "The user id."
+          }
+        ],
+        "tags": ["Event"],
+        "summary": "Delete a user from an event.",
+        "description": "Delete a specified user from the specified event.",
+        "responses": {
+          "200": {
+            "description": "Succesful operation.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "idEvent": {
+                      "type": "string"
+                    },
+                    "idUser": {
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Event not found.",
             "content": {
               "application/json": {
                 "schema": {

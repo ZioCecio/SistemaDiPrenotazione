@@ -23,11 +23,17 @@ router.get("/", (req, res) => {
       .where("type", "==", req.query.type)
       .get()
       .then(results => {
+        if (results.empty)
+          return res.status(404).json({ msg: "Event not found" });
+
         const events = [];
 
         results.forEach(result => {
           const ret = result.data();
           ret.id = result.id;
+
+          if (ret.owner !== req.uid) delete ret.subcribedUsers;
+
           events.push(ret);
         });
 

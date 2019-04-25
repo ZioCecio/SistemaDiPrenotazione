@@ -4,10 +4,15 @@ Gestire le prenotazioni per una serie di eventi.per ogni evento ci saranno un nu
 
 ## operazioni
 
-* Analisi dei requisiti -> descrizione nel wiki delle scelte fatte
-* Definizione dell'interfaccia del web service REST -> documentazione
-* definizione tecnologie e caratteristiche del client
-* Documentazione del codice.
-* varie ed eventuali
+- Analisi dei requisiti -> descrizione nel wiki delle scelte fatte
+- Definizione dell'interfaccia del web service REST -> documentazione
+- definizione tecnologie e caratteristiche del client
+- Documentazione del codice.
+- varie ed eventuali
 
 FORUM: https://discord.gg/qFM7Kvc
+
+#API:
+
+Link api: [https://eventmanager-374c0.firebaseapp.com](https://eventmanager-374c0.firebaseapp.com)
+Documentazione [qui](https://eventmanager-374c0.firebaseapp.com/api-docs/)
