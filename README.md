@@ -12,7 +12,7 @@ Gestire le prenotazioni per una serie di eventi.per ogni evento ci saranno un nu
 
 FORUM: https://discord.gg/qFM7Kvc
 
-#API:
+#API
 
-Link api: [https://eventmanager-374c0.firebaseapp.com](https://eventmanager-374c0.firebaseapp.com)
+Link api: https://eventmanager-374c0.firebaseapp.com
 Documentazione [qui](https://eventmanager-374c0.firebaseapp.com/api-docs/)
