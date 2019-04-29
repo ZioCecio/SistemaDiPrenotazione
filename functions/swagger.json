@@ -87,6 +87,10 @@
             "type": "string",
             "format": "date"
           },
+          "duration": {
+            "type": "integer",
+            "format": "int64"
+          },
           "place": {
             "type": "string",
             "format": "latlong"
@@ -603,6 +607,17 @@
               "format": "int64",
               "example": 10
             }
+          },
+          {
+            "name": "duration",
+            "in": "body",
+            "description": "Duration (in minute) of the event.",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "format": "int64",
+              "example": 90
+            }
           }
         ],
         "summary": "Create a new event.",
@@ -804,6 +819,16 @@
               "example": 3
             },
             "description": "The max number of the partecipants of the event."
+          },
+          {
+            "in": "body",
+            "name": "duration",
+            "schema": {
+              "type": "integer",
+              "format": "int64",
+              "example": 70
+            },
+            "description": "The duration (in minute) of the event."
           }
         ],
         "tags": ["Event"],

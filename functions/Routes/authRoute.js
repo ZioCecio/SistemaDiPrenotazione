@@ -49,7 +49,17 @@ router.post(
         db.collection("users")
           .doc(user.uid)
           .set(data)
-          .then(() => res.status(200).json(data))
+          .then(() => {
+            firebase
+              .auth()
+              .signInWithEmailAndPassword(req.body.email, req.body.password)
+              .then(user => {
+                user.user.getIdToken(true).then(id => {
+                  data.token = id;
+                  res.status(200).json(data);
+                });
+              });
+          })
           .catch(err => res.status(422).json({ msg: err.message }));
       })
       .catch(err => res.status(422).json({ msg: err.message }));

@@ -104,7 +104,7 @@ router.delete("/:id", (req, res) => {
           });
         });
     })
-    .catch(err => res.send(422).json({ msg: err.message }));
+    .catch(err => res.status(422).json({ msg: err.message }));
 });
 
 module.exports = router;

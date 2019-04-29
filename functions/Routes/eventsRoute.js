@@ -101,10 +101,9 @@ router.post(
       .exists()
       .not()
       .isEmpty(),
-    check(
-      "description",
-      "You must provide an event description (also empty)."
-    ).exists(),
+    check("description", "You must provide an event description (also empty).")
+      .exists()
+      .optional(),
     check("date", "Incorrect date.")
       .exists()
       .isISO8601(),
@@ -117,7 +116,10 @@ router.post(
       .isEmpty(),
     check("maxPartecipants", "Incorrect number of partecipants.")
       .exists()
-      .isInt()
+      .isInt(),
+    check("duration", "You must provide a duration.")
+      .exists()
+      .isFloat()
   ],
   (req, res) => {
     const errors = validationResult(req);
@@ -129,8 +131,9 @@ router.post(
     const event = {
       owner: req.uid,
       name: req.body.name,
-      description: req.body.description,
-      date: Date(req.body.date),
+      description: req.body.description ? req.body.description : "",
+      date: new Date(req.body.date),
+      duration: req.body.duration,
       place: {
         lat: lat,
         long: long
@@ -211,6 +214,9 @@ router.put(
       .optional(),
     check("place", "Incorrect place.")
       .isLatLong()
+      .optional(),
+    check("duration", "Incorrect duration")
+      .isFloat()
       .optional()
   ],
   (req, res) => {
@@ -232,11 +238,14 @@ router.put(
         if (req.body.name !== undefined) newEvent.name = req.body.name;
         if (req.body.description !== undefined)
           newEvent.description = req.body.description;
-        if (req.body.date !== undefined) newEvent.date = Date(req.body.date);
+        if (req.body.date !== undefined)
+          newEvent.date = new Date(req.body.date);
         if (req.body.place !== undefined) newEvent.place = req.body.place;
         if (req.body.maxPartecipants !== undefined)
           newEvent.maxPartecipants = req.body.maxPartecipants;
         if (req.body.type !== undefined) newEvent.type = req.body.type;
+        if (req.body.duration !== undefined)
+          newEvent.duration = req.body.duration;
 
         if (Object.keys(newEvent).length === 0)
           return res
